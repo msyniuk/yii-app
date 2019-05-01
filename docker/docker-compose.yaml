@@ -1,0 +1,47 @@
+version: '3'
+services:
+    yii-app-web:
+        image: itworkssoft/php72
+        container_name: yii-app-web
+        hostname: yii-app-web
+        depends_on:
+            - yii-app-mysql
+        links:
+            - yii-app-mysql
+        external_links:
+            - mailcatcher
+        networks:
+            - default
+            - global_default
+        volumes:
+            - composer-cache-volume:/home/dev/.composer/cache
+            - ./mount/var/log/apache2:/var/log/apache2
+            - ./mount/etc/apache2/sites-enabled:/etc/apache2/sites-enabled
+            - ./..:/var/www/html
+        environment:
+            #PHP_CONFIG_WEB: xdebug.remote_connect_back=1
+            PASSWORD: 112233
+            EXPOSE_HOSTS: |-
+                yii-app.test
+
+    yii-app-mysql:
+        image: percona:5.7
+        container_name: yii-app-mysql
+        environment:
+          - MYSQL_ROOT_PASSWORD=root
+          - MYSQL_DATABASE=yii-app
+          - MYSQL_USER=yii-app
+          - MYSQL_PASSWORD=yii-app
+        volumes:
+          - mysql-data:/var/lib/mysql:rw
+          # you may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
+          # - ./docker/mysql/data:/var/lib/mysql:rw,delegated
+
+volumes:
+    mysql-data:
+    composer-cache-volume:
+        external: true
+
+networks:
+    global_default:
+        external: true
